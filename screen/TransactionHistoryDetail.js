@@ -5,25 +5,31 @@ import {
   Text,
   Alert,
   Button,
+  FlatList,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import { TextInput } from 'react-native-paper';
+import { TextInput, Checkbox } from 'react-native-paper';
 import Constants from 'expo-constants';
 import moment from 'moment';
 
 import {
   useTransactionHistorys,
   useTransactionHistorysDispatch,
-} from '../Context/TransactionHistoryContext';
+} from '../context/TransactionHistoryContext';
+import { useFriends, useFriendsDispatch } from '../context/FriendContext';
 import RoundIconBtn from '../components/RoundIconBtn';
 import Colors from '../misc/Colors';
+import NameCheckbox from '../components/NameCheckBox';
 
 export default function TransactionHistoryDetail({ route, navigation }) {
   const mode = route.params.mode;
   const transactionId = route.params.id;
   const transactionHistorys = useTransactionHistorys();
-  const dispatch = useTransactionHistorysDispatch();
+  const transactionHistorysDispatch = useTransactionHistorysDispatch();
+  const friends = useFriends();
+  const friendsDispatch = useFriendsDispatch();
+  const [friendListForCheckBox, setFriendListForCheckBox] = useState([]);
   let transaction;
 
   if (mode === 'edit') {
@@ -35,14 +41,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
       name: '',
       amount: 0,
       remark: '',
-    };
-  } else {
-    transaction = {
-      id: 0, //no use
-      date: moment(Date.now()).format('YYYY/MM/DD'),
-      name: '',
-      amount: 0,
-      remark: '',
+      relatedFriends: [],
     };
   }
 
@@ -53,7 +52,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
   const [remark, setRemark] = useState(transaction?.remark);
 
   const deleteTransaction = () => {
-    dispatch({
+    transactionHistorysDispatch({
       type: 'delete',
       id: transactionId,
     });
@@ -81,12 +80,120 @@ export default function TransactionHistoryDetail({ route, navigation }) {
     );
   };
 
+  const buildFriendListForCheckBox = (fds, relatedFriends) => {
+    let newFriends = [];
+    for (let fd of fds) {
+      newFriends = [
+        ...newFriends,
+        { name: fd, selected: relatedFriends.includes(fd) },
+      ];
+    }
+    setFriendListForCheckBox(newFriends);
+  };
+
+  useEffect(() => {
+    buildFriendListForCheckBox(friends, transaction.relatedFriends);
+  }, []);
+
+  const onCheckBoxClick = (click, name) => {
+    if (name.length > 0) {
+      if (friendListForCheckBox.find((fd) => fd.name === name)) {
+        setFriendListForCheckBox(
+          friendListForCheckBox.map((fd) => {
+            if (fd.name === name) {
+              return { ...fd, selected: click };
+            } else {
+              return fd;
+            }
+          })
+        );
+      } else {
+        setFriendListForCheckBox([
+          ...friendListForCheckBox,
+          { name: name, selected: click },
+        ]);
+      }
+    }
+  };
+
+  const getSelectedRelatedFriends = () => {
+    let rfds = [];
+    for (let fd of friendListForCheckBox) {
+      if (fd.selected) rfds.push(fd.name);
+    }
+    return rfds;
+  };
+
+  const addBtnclick = () => {
+    transactionHistorysDispatch({
+      type: 'add',
+      id: Date.now(),
+      date: date.trim(),
+      name: name.trim(),
+      amount: Number(amount),
+      remark: remark,
+      relatedFriends: getSelectedRelatedFriends(),
+    });
+    navigation.goBack();
+  };
+
+  const saveBtnClick = () => {
+    transactionHistorysDispatch({
+      type: 'update',
+      transactionHistory: {
+        ...transaction,
+        date: date.trim(),
+        name: name.trim(),
+        amount: Number(amount),
+        remark: remark,
+        relatedFriends: getSelectedRelatedFriends(),
+      },
+    });
+    navigation.goBack();
+  };
+
+  const button = () => {
+    return (
+      <>
+        {mode === 'edit' ? (
+          <>
+            <RoundIconBtn
+              antIconName="save"
+              size={50}
+              color={Colors.DARK}
+              onPress={saveBtnClick}
+              style={styles.saveBtn}
+            />
+            <RoundIconBtn
+              antIconName="delete-outline"
+              size={50}
+              color={Colors.DARK}
+              onPress={displayDeleteAlert}
+              style={styles.deleteBtn}
+            />
+          </>
+        ) : null}
+        {mode === 'new' ? (
+          <>
+            <RoundIconBtn
+              antIconName="add"
+              size={50}
+              color={Colors.DARK}
+              onPress={addBtnclick}
+              style={styles.saveBtn}
+            />
+          </>
+        ) : null}
+      </>
+    );
+  };
+
   return (
     <>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
           <TextInput
-            label="Date(YYYY/MM/DD)"
+            label="Date (YYYY/MM/DD)"
             value={date}
             onChangeText={(text) => setDate(text)}
           />
@@ -105,59 +212,35 @@ export default function TransactionHistoryDetail({ route, navigation }) {
             value={remark}
             onChangeText={(text) => setRemark(text)}
             multiline={true}
-            style={{ height: 300 }}
+            style={{ height: 100 }}
           />
-          {mode === 'edit' ? (
-            <>
-              <RoundIconBtn
-                antIconName="save"
-                size={50}
-                color={Colors.DARK}
-                onPress={() => {
-                  dispatch({
-                    type: 'update',
-                    transactionHistory: {
-                      ...transaction,
-                      date: date.trim(),
-                      name: name.trim(),
-                      amount: Number(amount),
-                      remark: remark,
-                    },
-                  });
-                  navigation.goBack();
-                }}
-                style={styles.saveBtn}
-              />
-              <RoundIconBtn
-                antIconName="delete-outline"
-                size={50}
-                color={Colors.DARK}
-                onPress={displayDeleteAlert}
-                style={styles.deleteBtn}
-              />
-            </>
-          ) : null}
-          {mode === 'new' ? (
-            <>
-              <RoundIconBtn
-                antIconName="add"
-                size={50}
-                color={Colors.DARK}
-                onPress={() => {
-                  dispatch({
-                    type: 'add',
-                    id: Date.now(),
-                    date: date.trim(),
-                    name: name.trim(),
-                    amount: Number(amount),
-                    remark: remark,
-                  });
-                  navigation.goBack();
-                }}
-                style={styles.saveBtn}
-              />
-            </>
-          ) : null}
+          <Text style={styles.relatedFriends}>Related Friends</Text>
+          <FlatList
+            data={friendListForCheckBox.sort((a, b) =>
+              a.name.localeCompare(b.name)
+            )}
+            keyExtractor={(item) => item.name}
+            renderItem={({ item }) => (
+              <>
+                <NameCheckbox
+                  name={item.name}
+                  onClick={onCheckBoxClick}
+                  ticked={item.selected}
+                />
+              </>
+            )}
+            ListFooterComponent={() => (
+              <>
+                <NameCheckbox
+                  name={''}
+                  mode={'edit'}
+                  onClick={onCheckBoxClick}
+                  ticked={false}
+                />
+              </>
+            )}
+          />
+          {button()}
         </View>
       </TouchableWithoutFeedback>
     </>
@@ -182,14 +265,13 @@ const styles = StyleSheet.create({
     bottom: 30,
     borderRadius: 33,
   },
-  date: {
-    backgroundColor: '#e7e7e7',
-    borderBottomWidth: 1,
-    borderBottomColor: '#ababab',
-    padding: 12,
-  },
-  dateText: {
-    fontSize: 12,
-    color: '#6a6a6a',
+  relatedFriends: {
+    fontWeight: 'bold',
+    margin: 5,
+    padding: 5,
+    alignSelf: 'flex-start',
+    borderRadius: 10,
+    overflow: 'hidden',
+    backgroundColor: Colors.PRIMARY,
   },
 });

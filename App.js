@@ -9,7 +9,8 @@ import { AntDesign } from '@expo/vector-icons';
 import Home from './screen/Home';
 import TransactionHistory from './screen/TransactionHistory';
 import TransactionHistoryDetail from './screen/TransactionHistoryDetail';
-import { TransactionHistorysProvider } from './Context/TransactionHistoryContext';
+import { TransactionHistorysProvider } from './context/TransactionHistoryContext';
+import { FriendsProvider } from './context/FriendContext';
 
 const BottomTab = createBottomTabNavigator();
 const TransactionHistoryStack = createStackNavigator();
@@ -18,28 +19,30 @@ export default function WhoPays() {
   return (
     <>
       <TransactionHistorysProvider>
-        <NavigationContainer>
-          <BottomTab.Navigator screenOptions={{ headerShown: false }}>
-            <BottomTab.Screen
-              name="Home"
-              component={Home}
-              options={{
-                tabBarIcon: ({ color, size }) => (
-                  <AntDesign name="home" size={size} color={color} />
-                ),
-              }}
-            />
-            <BottomTab.Screen
-              name="Transaction"
-              component={NestedStackScreen}
-              options={{
-                tabBarIcon: ({ color, size }) => (
-                  <AntDesign name="form" size={size} color={color} />
-                ),
-              }}
-            />
-          </BottomTab.Navigator>
-        </NavigationContainer>
+        <FriendsProvider>
+          <NavigationContainer>
+            <BottomTab.Navigator screenOptions={{ headerShown: false }}>
+              <BottomTab.Screen
+                name="Home"
+                component={Home}
+                options={{
+                  tabBarIcon: ({ color, size }) => (
+                    <AntDesign name="home" size={size} color={color} />
+                  ),
+                }}
+              />
+              <BottomTab.Screen
+                name="Transaction"
+                component={NestedStackScreen}
+                options={{
+                  tabBarIcon: ({ color, size }) => (
+                    <AntDesign name="form" size={size} color={color} />
+                  ),
+                }}
+              />
+            </BottomTab.Navigator>
+          </NavigationContainer>
+        </FriendsProvider>
       </TransactionHistorysProvider>
     </>
   );
