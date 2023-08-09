@@ -11,9 +11,17 @@ import {
   Keyboard,
 } from 'react-native';
 import Constants from 'expo-constants';
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import {
+  Button,
+  Paragraph,
+  Dialog,
+  Portal,
+  Provider,
+} from 'react-native-paper';
+import { WebView } from 'react-native-webview';
 
-import { useTransactionHistorys } from '../Context/TransactionHistoryContext';
+import { useTransactionHistorys } from '../context/TransactionHistoryContext';
+import { useFriendsDispatch } from '../context/FriendContext';
 
 //const initialFriends = [
 //  { id: 0, name: 'Harrison', paid: 10 },
@@ -23,18 +31,46 @@ import { useTransactionHistorys } from '../Context/TransactionHistoryContext';
 
 export default function Home() {
   const transactionHistorys = useTransactionHistorys();
+  const updateFriendsDispatch = useFriendsDispatch();
   const [friends, setFriends] = useState([]);
-  const [additionalFriends, setAdditionalFriends] = useState([]);
+
+  const [visible, setVisible] = useState(false);
+  const [dialogMsg, setDialogMsg] = useState();
+  const showDialog = (msg) => {
+    setVisible(true);
+    console.log(msg);
+    setDialogMsg(msg);
+  };
+  const hideDialog = () => setVisible(false);
 
   const buildFriends = () => {
     let fds = [];
     let index = 0;
     //from transaction historys
     for (let th of transactionHistorys) {
+      let totalFds = th.relatedFriends.length;
+      let balanceForEveryone = th.amount / totalFds;
+      let detailForSpender =
+        th.name +
+        ' paid $' +
+        th.amount.toFixed(2) +
+        ' for ' +
+        th.remark +
+        '.\n';
+      let detailForRelatedFriends =
+        '{name} need to pay $' +
+        balanceForEveryone.toFixed(2) +
+        ' for ' +
+        th.remark +
+        '.\n';
+
+      //Spender
       if (fds.find((fd) => fd.name === th.name)) {
         fds.forEach((fd) => {
           if (fd.name === th.name) {
             fd.paid += th.amount;
+            fd.balance += th.amount;
+            fd.detail += detailForSpender;
           }
         });
       } else {
@@ -44,107 +80,78 @@ export default function Home() {
             id: index++,
             name: th.name,
             paid: th.amount,
+            balance: th.amount,
+            detail: detailForSpender,
           },
         ];
       }
-    }
-    //from additional friends
-    for (let af of additionalFriends) {
-      if (!fds.find((fd) => fd.name === af.name)) {
-        {
+
+      //Related friends
+      for (let rfd of th.relatedFriends) {
+        if (fds.find((fd) => fd.name === rfd)) {
+          {
+            fds.forEach((fd) => {
+              if (fd.name === rfd) {
+                fd.balance += balanceForEveryone * -1;
+                fd.detail += detailForRelatedFriends.replace('{name}', rfd);
+              }
+            });
+          }
+        } else {
           fds = [
             ...fds,
             {
               id: index++,
-              name: af.name,
+              name: rfd,
               paid: 0,
+              balance: balanceForEveryone * -1,
+              detail: detailForRelatedFriends.replace('{name}', rfd),
             },
           ];
         }
       }
     }
     setFriends(fds);
+    updateFriendsDispatch({
+      type: 'set',
+      friends: fds,
+    });
   };
 
   let totalPaid = friends.reduce((a, v) => (a = a + Number(v.paid)), 0);
 
-  const findAdditionalFriends = async () => {
-    const result = await AsyncStorage.getItem('additionalFriends');
-    if (result !== null) {
-      let newFriends = JSON.parse(result);
-      setAdditionalFriends(newFriends);
-    }
-  };
-
-  useEffect(() => {
-    findAdditionalFriends();
-  }, []);
-
   useEffect(() => {
     buildFriends();
     //AsyncStorage.clear();
-  }, [transactionHistorys, additionalFriends]);
-
-  const handleAddFriend = async (name) => {
-    if (!friends.some((fd) => fd.name === name)) {
-      let newFriends = [
-        ...friends,
-        {
-          id: friends.length,
-          name: name,
-          paid: 0,
-        },
-      ];
-      setAdditionalFriends(newFriends);
-      await setAsyncStorage('additionalFriends', newFriends);
-    }
-  };
-
-  const handleUpdateFriend = async (friendId, updatedFriendPaid) => {
-    let newFriends = friends.map((friend) => {
-      if (friend.id === friendId) {
-        return {
-          ...friend,
-          paid: updatedFriendPaid,
-        };
-      } else {
-        return friend;
-      }
-    });
-    setAdditionalFriends(newFriends);
-    await setAsyncStorage('additionalFriends', newFriends);
-  };
-
-  const handleDeleteFriend = async (friendId) => {
-    let newFriends = friends.filter((friend) => friend.id !== friendId);
-    setAdditionalFriends(newFriends);
-    await setAsyncStorage('additionalFriends', newFriends);
-  };
-
-  const setAsyncStorage = async (itemName, item) => {
-    switch (itemName) {
-      case 'additionalFriends':
-        await AsyncStorage.setItem(itemName, JSON.stringify(item));
-        break;
-      default:
-      // code block
-    }
-  };
+  }, [transactionHistorys]);
 
   return (
-    <>
+    <Provider>
+      <View>
+        <Portal>
+          <Dialog visible={visible} onDismiss={hideDialog}>
+            <Dialog.Title>Detail</Dialog.Title>
+            <Dialog.Content>
+              <Paragraph>{dialogMsg}</Paragraph>
+            </Dialog.Content>
+            <Dialog.Actions>
+              <Button onPress={hideDialog}>Done</Button>
+            </Dialog.Actions>
+          </Dialog>
+        </Portal>
+      </View>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.container}>
-          <TextBoxAdd onAdd={handleAddFriend} />
           <PackingList
             friends={friends.sort((a, b) => a.name.localeCompare(b.name))}
-            onUpdateFriend={handleUpdateFriend}
-            onDeleteFriend={handleDeleteFriend}
+            onPress={showDialog}
           />
-          <Text style={styles.totalPaid}>{`Total Paid: $${totalPaid}`}</Text>
+          <Text style={styles.totalPaid}>{`Total Expense: $${totalPaid.toFixed(
+            2
+          )}`}</Text>
         </View>
       </TouchableWithoutFeedback>
-    </>
+    </Provider>
   );
 }
 
@@ -157,7 +164,7 @@ const styles = StyleSheet.create({
   totalPaid: {
     fontWeight: 'bold',
     marginTop: 10,
-    padding:5,
+    padding: 5,
     alignSelf: 'flex-start',
     borderRadius: 10,
     overflow: 'hidden',

@@ -1,20 +1,18 @@
 import { useState, useCallback } from 'react';
-import { View, StyleSheet, Text, TextInput, FlatList } from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  TextInput,
+  FlatList,
+  TouchableOpacity,
+  Alert,
+} from 'react-native';
 import RoundIconBtn from './RoundIconBtn';
 import Colors from '../misc/Colors';
 
-export default function PackingList({
-  friends,
-  onUpdateFriend,
-  onDeleteFriend,
-}) {
-  var totalPaid = friends.reduce((a, v) => (a = a + Number(v.paid)), 0);
-
-  const renderItem = useCallback(({item}) => (
-    <View key={item.key}>
-        <Text>{item.title}</Text>
-    </View>
-  ), []);
+export default function PackingList({ friends, onPress }) {
+  //var totalPaid = friends.reduce((a, v) => (a = a + Number(v.paid)), 0);
 
   return (
     <>
@@ -33,7 +31,7 @@ export default function PackingList({
             Paid
           </Text>
           <Text
-            style={[styles.header,styles.header_last]}
+            style={[styles.header, styles.header_last]}
             numberOfLines={1}
             adjustsFontSizeToFit={true}>
             OutStanding Balance
@@ -48,27 +46,20 @@ export default function PackingList({
                 <Text>{item.name}</Text>
               </View>
               <View style={styles.item}>
-                <Text>${item.paid}</Text>
+                <Text>${item.paid.toFixed(2)}</Text>
               </View>
               <View style={styles.item}>
-                <Text>
-                {(item.paid - totalPaid / friends.length) < 0 ?
-                  <Text style={{color:'red'}}>${(item.paid - totalPaid / friends.length).toFixed(2)}</Text>
-                  :
-                    <Text>${(item.paid - totalPaid / friends.length).toFixed(2)}</Text>
-                }
-                </Text>
+                <TouchableOpacity onPress={() => onPress(item.detail)}>
+                  {item.balance < 0 ? (
+                    <Text style={{ color: 'red' }}>
+                      ${item.balance.toFixed(2)}
+                    </Text>
+                  ) : (
+                    <Text>${item.balance.toFixed(2)}</Text>
+                  )}
+                </TouchableOpacity>
               </View>
-              {item.paid===0?
-              <View style={styles.item}>
-                <RoundIconBtn
-                  antIconName="delete-outline"
-                  size={16}
-                  color="black"
-                  onPress={() => onDeleteFriend(item.id)}
-                  style={styles.deletebtn}
-                />
-              </View>:<View style={styles.item}/>}
+              <View style={styles.item} />
             </View>
           )}
           keyExtractor={(item) => item.id}
@@ -82,12 +73,12 @@ const styles = StyleSheet.create({
   item: {
     justifyContent: 'center',
     width: '28%',
-    borderBottomWidth:0.8,
-    height:50,
+    borderBottomWidth: 0.8,
+    height: 50,
   },
   deletebtn: {
     margin: 10,
-    width:33,
+    width: 33,
   },
   row: {
     flexDirection: 'row',
@@ -98,8 +89,8 @@ const styles = StyleSheet.create({
     width: '90%',
     height: 20,
     borderWidth: 1,
-    marginLeft:2,
-    left:2,
+    marginLeft: 2,
+    left: 2,
     borderRadius: 4,
     overflow: 'hidden',
   },
@@ -108,11 +99,11 @@ const styles = StyleSheet.create({
     width: '28%',
     fontSize: 16,
     fontWeight: 'bold',
-    borderBottomWidth:0.8,
+    borderBottomWidth: 0.8,
     flexShrink: 1,
     height: 30,
   },
-  header_last:{
+  header_last: {
     width: '44%',
-  }
+  },
 });

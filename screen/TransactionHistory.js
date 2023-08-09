@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { View, StyleSheet, Text, TextInput, FlatList } from 'react-native';
 import Constants from 'expo-constants';
 
-import { useTransactionHistorys } from '../Context/TransactionHistoryContext';
+import { useTransactionHistorys } from '../context/TransactionHistoryContext';
 import RoundIconBtn from '../components/RoundIconBtn';
 import Colors from '../misc/Colors';
 import Transaction from '../components/Transaction';
@@ -73,7 +73,7 @@ const styles = StyleSheet.create({
     borderRadius: 33,
   },
   input: {
-    backgroundColor: '#fff',
+    backgroundColor: Colors.LIGHT,
     padding: 10,
     margin: 10,
     borderRadius: 5,
