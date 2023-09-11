@@ -4,35 +4,46 @@ import Checkbox from 'expo-checkbox';
 
 import Colors from '../misc/Colors';
 
-const NameCheckbox = ({ name, ticked, mode, onClick}) => {
-  const [checked, setChecked] = useState(ticked);
+const NameCheckbox = ({
+  name,
+  ticked,
+  mode,
+  onClick,
+  checkBoxStyle,
+  rowStyle,
+  textStyle,
+}) => {
   const [text, setText] = useState('');
 
   const onClickCheckBox = (click) => {
-    setChecked(click);
     if (mode === 'edit') {
-      onClick(click,text);
-    }
-    else{
-      onClick(click,name);
+      onClick(click, text);
+    } else {
+      onClick(click, name);
     }
   };
 
   return (
-    <View style={styles.row}>
+    <View style={[styles.row, rowStyle]}>
       <Checkbox
         disabled={false}
-        value={checked}
+        value={ticked}
         onValueChange={(value) => {
           onClickCheckBox(value);
         }}
-        color={checked ? Colors.BUTTON : undefined}
-        style={styles.checkbox}
+        color={ticked ? Colors.BUTTON : Colors.DARK}
+        style={[styles.checkbox, checkBoxStyle]}
       />
       {mode === 'edit' ? (
-        <TextInput placeholder="Add" value={text} onChangeText={setText} style={styles.textInput}/>
+        <TextInput
+          placeholder="Add"
+          value={text}
+          onChangeText={setText}
+          style={[styles.textInput, textStyle]}
+          numberOfLines={1}
+        />
       ) : (
-        <Text style={styles.text}>{name}</Text>
+        <Text style={[styles.text, textStyle]}>{name}</Text>
       )}
     </View>
   );
@@ -50,15 +61,19 @@ const styles = StyleSheet.create({
     padding: 2,
   },
   checkbox: {
-    backgroundColor: Colors.PRIMARY,
+    backgroundColor: Colors.LIGHT,
+    height: 30,
+    width: 30,
   },
   text: {
+    marginTop: 5,
     marginLeft: 3,
-  },textInput: {
+  },
+  textInput: {
     marginLeft: 3,
     borderWidth: 1,
-    borderColor: Colors.PRIMARY,
-    color: Colors.PRIMARY,
+    borderColor: Colors.BUTTON,
+    color: Colors.BUTTON,
     width: Dimensions.get('window').width / 2,
     borderRadius: 10,
     backgroundColor: Colors.LIGHT,

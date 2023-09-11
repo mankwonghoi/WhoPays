@@ -15,8 +15,7 @@ export default function PackingList({ friends, onPress }) {
   //var totalPaid = friends.reduce((a, v) => (a = a + Number(v.paid)), 0);
 
   return (
-    <>
-      <View>
+      <View style={styles.containor}>
         <View style={styles.row}>
           <Text
             style={styles.header}
@@ -65,7 +64,6 @@ export default function PackingList({ friends, onPress }) {
           keyExtractor={(item) => item.id}
         />
       </View>
-    </>
   );
 }
 
@@ -76,23 +74,8 @@ const styles = StyleSheet.create({
     borderBottomWidth: 0.8,
     height: 50,
   },
-  deletebtn: {
-    margin: 10,
-    width: 33,
-  },
   row: {
     flexDirection: 'row',
-  },
-  textInput: {
-    backgroundColor: Colors.TEXTINPUT,
-    color: Colors.ERROR,
-    width: '90%',
-    height: 20,
-    borderWidth: 1,
-    marginLeft: 2,
-    left: 2,
-    borderRadius: 4,
-    overflow: 'hidden',
   },
   header: {
     justifyContent: 'center',
@@ -106,4 +89,7 @@ const styles = StyleSheet.create({
   header_last: {
     width: '44%',
   },
+  containor:{
+    maxHeight:'90%'
+  }
 });

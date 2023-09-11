@@ -29,7 +29,7 @@ import { useFriendsDispatch } from '../context/FriendContext';
 //  { id: 2, name: 'Derek', paid: 35 },
 //];
 
-export default function Home() {
+export default function Home({navigation}) {
   const transactionHistorys = useTransactionHistorys();
   const updateFriendsDispatch = useFriendsDispatch();
   const [friends, setFriends] = useState([]);
@@ -127,6 +127,7 @@ export default function Home() {
 
   return (
     <Provider>
+    <View style={styles.container}>
       <View>
         <Portal>
           <Dialog visible={visible} onDismiss={hideDialog}>
@@ -140,17 +141,19 @@ export default function Home() {
           </Dialog>
         </Portal>
       </View>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <PackingList
-            friends={friends.sort((a, b) => a.name.localeCompare(b.name))}
-            onPress={showDialog}
-          />
-          <Text style={styles.totalPaid}>{`Total Expense: $${totalPaid.toFixed(
-            2
-          )}`}</Text>
-        </View>
-      </TouchableWithoutFeedback>
+      <PackingList
+        friends={friends.sort((a, b) => a.name.localeCompare(b.name))}
+        onPress={showDialog}
+      />
+      <Text style={styles.totalPaid}>{`Total Expense: $${totalPaid.toFixed(
+        2
+      )}`}</Text>
+      <Button
+        mode="contained"
+        onPress={() => {navigation.navigate('WhoPaysSummary');}}>
+        WhoPays
+      </Button>
+    </View>
     </Provider>
   );
 }
@@ -163,11 +166,5 @@ const styles = StyleSheet.create({
   },
   totalPaid: {
     fontWeight: 'bold',
-    marginTop: 10,
-    padding: 5,
-    alignSelf: 'flex-start',
-    borderRadius: 10,
-    overflow: 'hidden',
-    backgroundColor: Colors.BUTTON,
   },
 });
