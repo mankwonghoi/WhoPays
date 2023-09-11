@@ -7,59 +7,69 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { AntDesign } from '@expo/vector-icons';
 
 import Home from './screen/Home';
+import WhoPaysSummary from './screen/WhoPaysSummary';
 import TransactionHistory from './screen/TransactionHistory';
 import TransactionHistoryDetail from './screen/TransactionHistoryDetail';
 import { TransactionHistorysProvider } from './context/TransactionHistoryContext';
 import { FriendsProvider } from './context/FriendContext';
 
 const BottomTab = createBottomTabNavigator();
-const TransactionHistoryStack = createStackNavigator();
+const NestedStack = createStackNavigator();
 
 export default function WhoPays() {
   return (
     <>
       <TransactionHistorysProvider>
         <FriendsProvider>
-          <NavigationContainer>
-            <BottomTab.Navigator screenOptions={{ headerShown: false }}>
-              <BottomTab.Screen
-                name="Home"
-                component={Home}
-                options={{
-                  tabBarIcon: ({ color, size }) => (
-                    <AntDesign name="home" size={size} color={color} />
-                  ),
-                }}
-              />
-              <BottomTab.Screen
-                name="Transaction"
-                component={NestedStackScreen}
-                options={{
-                  tabBarIcon: ({ color, size }) => (
-                    <AntDesign name="form" size={size} color={color} />
-                  ),
-                }}
-              />
-            </BottomTab.Navigator>
-          </NavigationContainer>
+            <NavigationContainer>
+              <BottomTab.Navigator screenOptions={{ headerShown: false }}>
+                <BottomTab.Screen
+                  name="Home"
+                  component={HomeNestedStackScreen}
+                  options={{
+                    tabBarIcon: ({ color, size }) => (
+                      <AntDesign name="home" size={size} color={color} />
+                    ),
+                  }}
+                />
+                <BottomTab.Screen
+                  name="Transaction"
+                  component={TransactionNestedStackScreen}
+                  options={{
+                    tabBarIcon: ({ color, size }) => (
+                      <AntDesign name="form" size={size} color={color} />
+                    ),
+                  }}
+                />
+              </BottomTab.Navigator>
+            </NavigationContainer>
         </FriendsProvider>
       </TransactionHistorysProvider>
     </>
   );
 }
 
-const NestedStackScreen = () => {
+const HomeNestedStackScreen = () => {
   return (
-    <TransactionHistoryStack.Navigator screenOptions={{ headerShown: false }}>
-      <TransactionHistoryStack.Screen
+    <NestedStack.Navigator screenOptions={{ headerShown: false }}>
+      <NestedStack.Screen component={Home} name="Home" />
+      <NestedStack.Screen component={WhoPaysSummary} name="WhoPaysSummary" />
+    </NestedStack.Navigator>
+  );
+};
+
+const TransactionNestedStackScreen = () => {
+  return (
+    <NestedStack.Navigator screenOptions={{ headerShown: false }}>
+      <NestedStack.Screen
         component={TransactionHistory}
         name="TransactionHistory"
       />
-      <TransactionHistoryStack.Screen
+      <NestedStack.Screen
         component={TransactionHistoryDetail}
         name="TransactionHistoryDetail"
       />
-    </TransactionHistoryStack.Navigator>
+    </NestedStack.Navigator>
   );
 };
 

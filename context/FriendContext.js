@@ -13,8 +13,6 @@ const FriendsDispatchContext = createContext(null);
 export function FriendsProvider({ children }) {
   const [friends, dispatch] = useReducer(friendReducer, []);
 
-
-
   return (
     <FriendsContext.Provider value={friends}>
       <FriendsDispatchContext.Provider value={dispatch}>
@@ -44,7 +42,7 @@ function friendReducer(friends, action) {
     case 'set': {
       let fds = [];
       for (let fd of action.friends) {
-        fds = [...fds, fd.name];
+        fds = [...fds, { name: fd.name, paid: fd.paid, balance: fd.balance }];
       }
       return fds;
     }

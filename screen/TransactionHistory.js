@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { View, StyleSheet, Text, TextInput, FlatList } from 'react-native';
+import { View, StyleSheet, Text, TextInput, FlatList,Button,Alert } from 'react-native';
 import Constants from 'expo-constants';
 
-import { useTransactionHistorys } from '../context/TransactionHistoryContext';
+import { useTransactionHistorys,useTransactionHistorysDispatch } from '../context/TransactionHistoryContext';
 import RoundIconBtn from '../components/RoundIconBtn';
 import Colors from '../misc/Colors';
 import Transaction from '../components/Transaction';
@@ -10,6 +10,7 @@ import Transaction from '../components/Transaction';
 
 const TransactionHistory = ({ navigation }) => {
   const transactionHistorys = useTransactionHistorys();
+  const transactionHistorysDispatch = useTransactionHistorysDispatch();
   const [keyword, setKeyword] = useState('');
 
   const addTransactionHistory = () => {
@@ -33,6 +34,47 @@ const TransactionHistory = ({ navigation }) => {
     );
   };
 
+  const renderPostListFooter = () => {
+    return (
+      <>
+        <Button
+          onPress={displayDeleteAlert}
+          title="Delete All Transaction"
+          color={Colors.PRIMARY}
+          accessibilityLabel="Learn more about this purple button"
+        />
+      </>
+    );
+  };
+
+  const deleteAllTransaction = () => {
+    transactionHistorysDispatch({
+      type: 'set',
+      transactionHistorys: [],
+    });
+  };
+
+  const displayDeleteAlert = () => {
+    //console.log('delete');
+    Alert.alert(
+      'Are You Sure?',
+      'This action will delete ALL your record permanently!',
+      [
+        {
+          text: 'Delete',
+          onPress: deleteAllTransaction,
+        },
+        {
+          text: 'No Thanks',
+          onPress: () => console.log('no thanks'),
+        },
+      ],
+      {
+        cancelable: true,
+      }
+    );
+  };
+
   let thData = transactionHistorys.filter((item)=>item.name.indexOf(keyword) > -1).sort((a, b) => { return b.id - a.id; })
 
   return (
@@ -44,6 +86,7 @@ const TransactionHistory = ({ navigation }) => {
           renderItem={({ item }) => (
             <Transaction item={item} onPress={() => openTransaction(item.id)} />
           )}
+          ListFooterComponent={renderPostListFooter()}
           keyExtractor={(item) => item.id}
         />
         <RoundIconBtn

@@ -8,8 +8,9 @@ import {
   FlatList,
   TouchableWithoutFeedback,
   Keyboard,
+  KeyboardAvoidingView,
 } from 'react-native';
-import { TextInput, Checkbox } from 'react-native-paper';
+import { TextInput } from 'react-native-paper';
 import Constants from 'expo-constants';
 import moment from 'moment';
 
@@ -17,7 +18,7 @@ import {
   useTransactionHistorys,
   useTransactionHistorysDispatch,
 } from '../context/TransactionHistoryContext';
-import { useFriends, useFriendsDispatch } from '../context/FriendContext';
+import { useFriends } from '../context/FriendContext';
 import RoundIconBtn from '../components/RoundIconBtn';
 import Colors from '../misc/Colors';
 import NameCheckbox from '../components/NameCheckBox';
@@ -28,7 +29,6 @@ export default function TransactionHistoryDetail({ route, navigation }) {
   const transactionHistorys = useTransactionHistorys();
   const transactionHistorysDispatch = useTransactionHistorysDispatch();
   const friends = useFriends();
-  const friendsDispatch = useFriendsDispatch();
   const [friendListForCheckBox, setFriendListForCheckBox] = useState([]);
   let transaction;
 
@@ -53,7 +53,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
 
   const deleteTransaction = () => {
     transactionHistorysDispatch({
-      type: 'delete',
+      type: 'set',
       id: transactionId,
     });
     navigation.goBack();
@@ -62,7 +62,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
   const displayDeleteAlert = () => {
     //console.log('delete');
     Alert.alert(
-      'Are You Sure!',
+      'Are You Sure?',
       'This action will delete your record permanently!',
       [
         {
@@ -85,7 +85,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
     for (let fd of fds) {
       newFriends = [
         ...newFriends,
-        { name: fd, selected: relatedFriends.includes(fd) },
+        { name: fd.name, selected: relatedFriends.includes(fd.name) },
       ];
     }
     setFriendListForCheckBox(newFriends);
@@ -114,6 +114,23 @@ export default function TransactionHistoryDetail({ route, navigation }) {
         ]);
       }
     }
+  };
+
+    
+  const onSelectAll = () => {
+    let flcb = friendListForCheckBox.map((cb) => {
+      return { name: cb.name, selected: true };
+    });
+    setFriendListForCheckBox(flcb);
+    console.log(flcb);
+  };
+
+  const onUnselectAll = () => {
+    setFriendListForCheckBox(
+      friendListForCheckBox.map((cb) => {
+        return { name: cb.name, selected: false };
+      })
+    );
   };
 
   const getSelectedRelatedFriends = () => {
@@ -180,7 +197,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
               size={50}
               color={Colors.DARK}
               onPress={addBtnclick}
-              style={styles.saveBtn}
+              style={styles.deleteBtn}
             />
           </>
         ) : null}
@@ -189,61 +206,80 @@ export default function TransactionHistoryDetail({ route, navigation }) {
   };
 
   return (
-    <>
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <TextInput
-            label="Date (YYYY/MM/DD)"
-            value={date}
-            onChangeText={(text) => setDate(text)}
-          />
+    <KeyboardAvoidingView behavior="padding" style={styles.container}>
+      <View>
+        <TextInput
+          label="Date (YYYY/MM/DD)"
+          value={date}
+          onChangeText={(text) => setDate(text)}
+        />
+        <View style={styles.row}>
           <TextInput
             label="Name"
             value={name}
             onChangeText={(text) => setName(text)}
+            style={styles.name}
           />
           <TextInput
             label="Amount"
             value={amount.toString()}
             onChangeText={(text) => setAmount(text)}
+            keyboardType="numeric"
+            style={styles.amount}
           />
-          <TextInput
-            label="Remark"
-            value={remark}
-            onChangeText={(text) => setRemark(text)}
-            multiline={true}
-            style={{ height: 100 }}
-          />
-          <Text style={styles.relatedFriends}>Related Friends</Text>
-          <FlatList
-            data={friendListForCheckBox.sort((a, b) =>
-              a.name.localeCompare(b.name)
-            )}
-            keyExtractor={(item) => item.name}
-            renderItem={({ item }) => (
-              <>
-                <NameCheckbox
-                  name={item.name}
-                  onClick={onCheckBoxClick}
-                  ticked={item.selected}
-                />
-              </>
-            )}
-            ListFooterComponent={() => (
-              <>
-                <NameCheckbox
-                  name={''}
-                  mode={'edit'}
-                  onClick={onCheckBoxClick}
-                  ticked={false}
-                />
-              </>
-            )}
-          />
-          {button()}
         </View>
-      </TouchableWithoutFeedback>
-    </>
+        <TextInput
+          label="Remark"
+          value={remark}
+          onChangeText={(text) => setRemark(text)}
+          multiline={true}
+          style={{ height: 100 }}
+        />
+        <View style={styles.row}>
+          <Text style={styles.relatedFriends}>Related Friends</Text>
+          <Button
+            onPress={onSelectAll}
+            title={'Select All'}
+            color={Colors.BUTTON}
+          />
+          <Button
+            onPress={onUnselectAll}
+            title={'Unselect All'}
+            color={Colors.BUTTON}
+          />
+        </View>
+      </View>
+      {console.log('before list')}
+      {console.log(friendListForCheckBox)}
+      <FlatList
+        data={friendListForCheckBox.sort((a, b) =>
+          a.name.localeCompare(b.name)
+        )}
+        numColumns={2}
+        keyExtractor={(item) => item.name}
+        renderItem={({ item }) => (
+          <>
+          {console.log(item.selected)}
+            <NameCheckbox
+              name={item.name}
+              onClick={onCheckBoxClick}
+              ticked={item.selected}
+            />
+          </>
+        )}
+        ListFooterComponent={() => (
+          <>
+            <NameCheckbox
+              name={''}
+              mode={'edit'}
+              onClick={onCheckBoxClick}
+              ticked={false}
+            />
+          </>
+        )}
+      />
+      {button()}
+    </KeyboardAvoidingView>
   );
 }
 
@@ -267,11 +303,21 @@ const styles = StyleSheet.create({
   },
   relatedFriends: {
     fontWeight: 'bold',
+    height: 30,
     margin: 5,
     padding: 5,
     alignSelf: 'flex-start',
     borderRadius: 10,
     overflow: 'hidden',
     backgroundColor: Colors.PRIMARY,
+  },
+  row: {
+    flexDirection: 'row',
+  },
+  name: {
+    width: '60%',
+  },
+  amount: {
+    width: '40%',
   },
 });

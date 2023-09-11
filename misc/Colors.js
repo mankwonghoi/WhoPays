@@ -6,5 +6,5 @@ export default {
   BUTTON: '#33BEFF',
   TEXTINPUT: '#ededed',
   HEADER: '#ededed',
-  CHECKBOX: '#e7e7e7',
+  CHECKBOX: '#FFFFFF',
 };
