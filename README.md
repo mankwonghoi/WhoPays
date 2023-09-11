@@ -1,8 +1,7 @@
 # Who Pays App
 
-This is a multi-platform application write by Harrison using Expo Snack.
+This is a multi-platform application written by Harrison using Expo Snack.
 
-This app arm to record the expenses from a group of friends or family. Which you may have some share expenses, group bills. The app will calculate the balance for everyone invoked. Finally show a result that who need to pay to whom. The app will minmuns the number of payment you need to make as it will sum up all exsiting transaction and calculate.(The )
+This app aims to streamline calculations and minimize the number of payments required when sharing expenses and group bills with your family and friends. All you need to do is record who paid the bill, the amount, and the people involved. The app will automatically calculates the balance for everyone and provides a final result indicating who need to pay whom. It reduces the number of payments you need to make by consolidating all existing transactions and performing the necessary calculations. (Please be aware that there may be a slight discrepancy of a few cents between the total expenses and the total repayment amount due to certain expenses that cannot be evenly divided.)
 
-You can use this [Link](https://snack.expo.dev/@harrisoninexpo/whopays_v5) to enter the workspace and try the applciation yourself!
-
+You can use this [Link](https://snack.expo.dev/@harrisoninexpo/whopays_v5) to access the workspace and try the application yourself!
