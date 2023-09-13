@@ -53,7 +53,7 @@ export default function TransactionHistoryDetail({ route, navigation }) {
 
   const deleteTransaction = () => {
     transactionHistorysDispatch({
-      type: 'set',
+      type: 'delete',
       id: transactionId,
     });
     navigation.goBack();
